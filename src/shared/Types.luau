@@ -8,7 +8,14 @@
 
 -- Every district of the playable world. Ids are stable: they are saved in player
 -- data and used as Workspace folder names, so never rename an existing id.
-export type DistrictId = "Downtown" | "Farmstead" | "NorthFields" | "Residential" | "SouthFields" | "RailYard" | "OuterRing"
+export type DistrictId =
+	"Downtown"
+	| "Farmstead"
+	| "NorthFields"
+	| "Residential"
+	| "SouthFields"
+	| "RailYard"
+	| "OuterRing"
 
 export type DistrictInfo = {
 	Id: DistrictId,

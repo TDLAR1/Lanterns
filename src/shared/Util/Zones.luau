@@ -49,7 +49,11 @@ function Zones.Resolve(zones: { ZoneVolume }, position: Vector3): ZoneVolume?
 		if zone.Part.Parent ~= nil and Zones.Contains(zone, position) then
 			local size = zone.Part.Size
 			local volume = size.X * size.Y * size.Z
-			if best == nil or zone.Priority > best.Priority or (zone.Priority == best.Priority and volume < bestVolume) then
+			if
+				best == nil
+				or zone.Priority > best.Priority
+				or (zone.Priority == best.Priority and volume < bestVolume)
+			then
 				best = zone
 				bestVolume = volume
 			end

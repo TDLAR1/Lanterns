@@ -29,7 +29,7 @@ local Tags = {
 	-- Attributes: DistrictId (string).
 	RingBatterySpot = "RingBatterySpot",
 
-	-- On every top-level blockout Model; lets tools find what is still a placeholder.
+	-- On every top-level blockout Model; lets tools find what still needs its final model.
 	-- Attributes: BlockoutOf (string; the building/landmark name).
 	Blockout = "Blockout",
 }

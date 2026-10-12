@@ -1,5 +1,5 @@
 --!strict
--- Game-wide identity. Swap the placeholder name here and it updates everywhere.
+-- Game-wide identity. Set the final game name here and it updates everywhere.
 
 local Game = {
 	Name = "[YOUR GAME NAME]",

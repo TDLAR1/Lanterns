@@ -21,6 +21,13 @@ local Input = {
 				Size = 56,
 			},
 		},
+		-- Closes the open panel. Only bound while a panel is open. No keyboard key
+		-- (Escape belongs to the Roblox menu) and no touch button (panels have
+		-- their own Close button).
+		CloseMenu = {
+			Keyboard = {},
+			Gamepad = { Enum.KeyCode.ButtonB },
+		},
 	} :: { [string]: Types.InputActionConfig },
 }
 

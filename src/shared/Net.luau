@@ -115,7 +115,10 @@ local function getRemoteInstance(name: string, className: string): Instance
 	assert(not declaredNames[name], `Remote "{name}" is declared twice`)
 	declaredNames[name] = true
 	if IS_SERVER then
-		assert(folder:FindFirstChild(name) == nil, `An Instance named "{name}" already exists in ReplicatedStorage.Remotes`)
+		assert(
+			folder:FindFirstChild(name) == nil,
+			`An Instance named "{name}" already exists in ReplicatedStorage.Remotes`
+		)
 		local remote = Instance.new(className)
 		remote.Name = name
 		remote.Parent = folder
@@ -138,7 +141,13 @@ end
 
 -- Rate limit first (cheap, stops floods), then validate. Returns true if the
 -- message may be handled.
-local function admit(player: Player, remoteName: string, limiter: RateLimiter.RateLimiter, validators: { Validator }, ...: any): boolean
+local function admit(
+	player: Player,
+	remoteName: string,
+	limiter: RateLimiter.RateLimiter,
+	validators: { Validator },
+	...: any
+): boolean
 	if not limiter:Allow(player) then
 		if IS_STUDIO then
 			warn(`[Net] Rate limited {player.Name} on {remoteName}`)
@@ -166,7 +175,9 @@ local function clientOnly(name: string, method: string)
 end
 
 function Net.ClientEvent(name: string, options: ClientEventOptions): any
-	local remote = (getRemoteInstance(name, if options.Unreliable then "UnreliableRemoteEvent" else "RemoteEvent") :: any) :: EventInstance
+	local remote = (
+		getRemoteInstance(name, if options.Unreliable then "UnreliableRemoteEvent" else "RemoteEvent") :: any
+	) :: EventInstance
 	local handlers: { (Player, ...any) -> () } = {}
 
 	if IS_SERVER then
@@ -199,7 +210,9 @@ end
 
 function Net.ServerEvent(name: string, options: ServerEventOptions?): any
 	local unreliable = options ~= nil and options.Unreliable == true
-	local remote = (getRemoteInstance(name, if unreliable then "UnreliableRemoteEvent" else "RemoteEvent") :: any) :: EventInstance
+	local remote = (
+		getRemoteInstance(name, if unreliable then "UnreliableRemoteEvent" else "RemoteEvent") :: any
+	) :: EventInstance
 
 	local event = { Name = name }
 

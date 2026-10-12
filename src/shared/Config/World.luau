@@ -45,12 +45,27 @@ local World = {
 		ServerTolerance = 150,
 		-- Seconds between server boundary checks.
 		ServerCheckInterval = 1,
+		-- Where the server puts a character it had to bring back: this many studs
+		-- inside the hard edge / below the ceiling (inside the soft band, so the
+		-- client's push-back carries on from there).
+		ServerReturnInset = 100,
 	},
 
 	Spawning = {
 		-- After dying, respawn at the nearest *discovered* district respawn point
 		-- instead of the main spawn on the highway.
 		RespawnAtNearestDistrict = true,
+		-- Height (studs) of the character's root part above the top of the district
+		-- respawn part, which rests on the ground (Config.Map.DistrictSpawnHeight).
+		-- A standard rig's root sits 3 studs above its feet, so the character
+		-- appears with its feet just above the ground and drops in gently.
+		RespawnHeightOffset = 3,
+		-- Seconds to wait for a new character's root part before giving up on moving it.
+		CharacterLoadTimeout = 10,
+		-- Seconds to wait for the client to stream in the area around a district
+		-- respawn point (Workspace.StreamingEnabled) before moving the character
+		-- there anyway.
+		StreamAroundTimeout = 5,
 	},
 
 	-- Static blockout lighting (day/night cycle arrives in Milestone 2).
@@ -71,6 +86,8 @@ local World = {
 
 	-- Show zone volumes as translucent boxes while testing in Studio.
 	DebugShowZonesInStudio = false,
+	-- How see-through those debug boxes are (0 = solid, 1 = invisible).
+	DebugZoneTransparency = 0.85,
 }
 
 return World
