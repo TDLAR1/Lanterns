@@ -5,8 +5,10 @@
 	UI is laid out for a viewport Theme.ReferenceHeight pixels tall. Every
 	ScreenGui made here gets a UIScale of (viewport height / ReferenceHeight),
 	clamped to [Theme.MinScale, Theme.MaxScale] and updated whenever the window
-	is resized or the device rotates, so a layout that fits at the reference
-	height fits on every screen.
+	is resized or the device rotates. On short screens (phones) the scale stops
+	at MinScale, so the logical screen is shorter than ReferenceHeight (about 460
+	units on a 390 pt tall phone): layouts must size to the screen or scroll, as
+	the Districts panel does.
 
 	The main "HUD" ScreenGui keeps its contents inside the core UI safe area:
 	below the Roblox top bar, clear of its menu and chat buttons and of screen

@@ -450,14 +450,40 @@ function Rural.WaterTower(model: Model, element: Element)
 		end
 	end
 	frame:Cylinder("Riser", 0, 0, 0, tankBottom, 3, paint)
-	frame:Cylinder("Balcony", 0, 0, tankBottom - 0.6, tankBottom, 33, MapPalette.SteelDark)
-	frame:Cylinder("Handrail", 0, 0, tankBottom + 2.6, tankBottom + 2.9, 32.6, MapPalette.SteelDark)
+	frame:Cylinder("Balcony", 0, 0, tankBottom - 0.6, tankBottom, 36, MapPalette.SteelDark)
+
+	-- Railing round the walkway: posts and a top rail every 15 degrees, left
+	-- open for 30 degrees where the ladder arrives so climbers can step on.
+	-- The ladder stands outside the balcony's edge so climbers clear its underside.
+	local ladderX, ladderZ = -leg - 2.5, -leg - 2.5
+	local ladderBearing = math.atan2(ladderZ, ladderX)
+	local railRadius, railTop, railSteps = 17.6, tankBottom + 3.5, 24
+	local function railPoint(step: number, y: number): Vector3
+		local angle = step / railSteps * 2 * math.pi
+		return Vector3.new(math.cos(angle) * railRadius, y, math.sin(angle) * railRadius)
+	end
+	local function nearLadder(step: number): boolean
+		local angle = step / railSteps * 2 * math.pi
+		-- Smallest angle between this step and the ladder, wrapped into [0, pi].
+		local offset = math.abs((angle - ladderBearing + math.pi) % (2 * math.pi) - math.pi)
+		return offset < math.rad(14)
+	end
+	for step = 0, railSteps - 1 do
+		if not nearLadder(step) then
+			local post = railPoint(step, 0)
+			frame:Cylinder("RailPost", post.X, post.Z, tankBottom, railTop, 0.3, MapPalette.SteelDark)
+		end
+		if not nearLadder(step + 0.5) then
+			frame:Beam("Handrail", railPoint(step, railTop), railPoint(step + 1, railTop), 0.3, MapPalette.SteelDark)
+		end
+	end
+
 	frame:Cylinder("Tank", 0, 0, tankBottom, tankTop, 30, paint)
 	frame:Cylinder("Roof", 0, 0, tankTop, tankTop + 2.5, 26, paint)
 	frame:Cylinder("Roof", 0, 0, tankTop + 2.5, tankTop + 4.8, 16, paint)
 	frame:Cylinder("Roof", 0, 0, tankTop + 4.8, tankTop + 6.6, 7, paint)
 	frame:Ball("Finial", 0, element.Height - 0.8, 0, 1.6, MapPalette.SteelDark)
-	frame:Truss("Ladder", -leg - 2, -leg, 0, legTop, MapPalette.SteelDark)
+	frame:Truss("Ladder", ladderX, ladderZ, 0, legTop, MapPalette.SteelDark)
 
 	-- Painted name: invisible panels tangent to the tank carry the lettering.
 	local town = string.upper(GameConfig.TownName)

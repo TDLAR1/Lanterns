@@ -5,8 +5,9 @@
 
 	Every size is in pixels at UI scale 1, i.e. on a viewport Theme.ReferenceHeight
 	tall; the HUD's UIScale resizes everything for the real screen. Keep text at
-	14 px or more and anything tappable at 44 px or more so phones stay usable at
-	Theme.MinScale.
+	13 px or more and anything tappable at 52 px or more (at scale 1), so on
+	phones, which always run at Theme.MinScale, text stays at 11 px or more and
+	tap targets at 44 px or more.
 ]]
 
 local UI = {
@@ -104,8 +105,11 @@ local UI = {
 		TagWidth = 96,
 		TagHeight = 22,
 		ScrollBarThickness = 6,
-		CloseButtonHeight = 48,
+		CloseButtonHeight = 52,
 		CloseTextSize = 18,
+		-- Controller button glyph at the right end of the Close button (gamepad only).
+		CloseGlyphSize = 28,
+		CloseGlyphInset = 12,
 		-- The panel grows from this scale to full size as it opens.
 		OpenFromScale = 0.94,
 	},

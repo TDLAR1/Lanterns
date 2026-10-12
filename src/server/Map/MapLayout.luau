@@ -341,7 +341,8 @@ MapLayout.Trees = {
 -- Farm extras: dirt yard south of the buildings, the farmhouse drive, hay bales.
 MapLayout.Farmyard = {
 	Yard = { X0 = -450, X1 = -280, Z0 = -18, Z1 = 18 } :: Rect,
-	Drive = { X0 = -415, X1 = -407, Z0 = -86, Z1 = -70 } :: Rect,
+	-- Centred on the farmhouse front door (world X -416), between the porch posts.
+	Drive = { X0 = -420, X1 = -412, Z0 = -86, Z1 = -70 } :: Rect,
 	HayBales = { { -352, -12 }, { -346, -4 }, { -358, -3 }, { -300, 12 } },
 }
 

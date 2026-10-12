@@ -330,6 +330,9 @@ function Interiors.Diner(model: Model, element: Element)
 	local bigWindow = { Y0 = 2.6, Y1 = 10, Glass = MapPalette.WindowClear }
 
 	frame:Span("Floor", -half + 1, half - 1, 0, FLOOR_TOP, front + 1, back - 1, MapPalette.Checker)
+	-- Paved strip between the footprint edge and the inset front wall, flush with
+	-- the sidewalk so there is no gap in front of the door.
+	frame:Span("Threshold", -half - 0.5, half + 0.5, 0, FLOOR_TOP, -frame.Depth / 2, front, MapPalette.Sidewalk)
 	frame:Span("FloorBand", -half + 1.5, half - 1.5, 0.3, FLOOR_TOP + 0.02, 7.5, 10.5, MapPalette.Black)
 
 	frame:Wall("Wall", "X", front + 0.5, -half, half, 0, wallTop, 1, {
@@ -466,7 +469,9 @@ function Interiors.GrainElevator(model: Model, element: Element)
 		stair2,
 		{ X0 = -16, X1 = -4, Z0 = -2, Z1 = 8 },
 	}, wood)
-	floorWithHoles(frame, "Platform", inner.X0, inner.X1, inner.Z0, 2, 41, 42, {
+	-- Top level, reached by dropping through the roof hole: 7 studs below the
+	-- roof so characters can stand and jump under it.
+	floorWithHoles(frame, "Platform", inner.X0, inner.X1, inner.Z0, 2, 39, 40, {
 		{ X0 = -6, X1 = 2, Z0 = -14, Z1 = -8 },
 	}, wood)
 	frame:Wedge("Ramp", stair1.X0, stair1.X1, 0.2, 15, stair1.Z0, stair1.Z1, "+Z", wood)

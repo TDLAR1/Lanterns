@@ -28,8 +28,8 @@ local Remotes = {
 
 	-- Client -> server -------------------------------------------------------
 
-	-- Asked once after the client starts; answers with the player's save summary
-	-- (nil if the profile could not be loaded in time).
+	-- Asked after the client starts, and again while it answers nil; answers with
+	-- the player's save summary once it has loaded (nil if it could not be loaded).
 	GetProfileSummary = Net.ClientFunction("GetProfileSummary", {
 		Args = {},
 		RateLimit = NetConfig.RateLimits.GetProfileSummary,

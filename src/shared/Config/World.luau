@@ -21,7 +21,7 @@ local World = {
 		{ Id = "NorthFields", DisplayName = "North Fields", Subtitle = "Wheat as far as the water tower" },
 		{ Id = "Residential", DisplayName = "Elm & Oak", Subtitle = "Residential streets" },
 		{ Id = "SouthFields", DisplayName = "South Fields", Subtitle = "Where the body was found" },
-		{ Id = "RailYard", DisplayName = "Rail Yard", Subtitle = "Tracks, gas station & the old grain elevator" },
+		{ Id = "RailYard", DisplayName = "Rail Yard", Subtitle = "Tracks, the siding & the old grain elevator" },
 		{ Id = "OuterRing", DisplayName = "County Farmland", Subtitle = "Open country beyond town" },
 	} :: { Types.DistrictInfo },
 

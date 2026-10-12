@@ -12,6 +12,7 @@
 	    and then against one validator per argument BEFORE any handler runs.
 	    Over-limit and invalid messages are dropped. Invalid messages are counted;
 	    an unmodified client never sends one, so too many gets the player kicked.
+	  * A client firing a server -> client event is counted as an invalid message.
 
 	Three kinds of remote:
 	  ClientEvent<T...>        client -> server   (client :Fire, server :Connect)
@@ -139,6 +140,17 @@ local function argsAreValid(validators: { Validator }, ...: any): boolean
 	return true
 end
 
+-- Counts a message an unmodified client never sends; too many in one session
+-- gets the player kicked.
+local function rejectInvalid(player: Player, remoteName: string)
+	local count = (invalidCounts[player] or 0) + 1
+	invalidCounts[player] = count
+	warn(`[Net] Invalid message from {player.Name} ({player.UserId}) on {remoteName} ({count})`)
+	if count >= NetConfig.MaxInvalidMessages then
+		player:Kick(NetConfig.InvalidMessageKickMessage)
+	end
+end
+
 -- Rate limit first (cheap, stops floods), then validate. Returns true if the
 -- message may be handled.
 local function admit(
@@ -155,12 +167,7 @@ local function admit(
 		return false
 	end
 	if not argsAreValid(validators, ...) then
-		local count = (invalidCounts[player] or 0) + 1
-		invalidCounts[player] = count
-		warn(`[Net] Invalid arguments from {player.Name} ({player.UserId}) on {remoteName} ({count})`)
-		if count >= NetConfig.MaxInvalidMessages then
-			player:Kick(NetConfig.InvalidMessageKickMessage)
-		end
+		rejectInvalid(player, remoteName)
 		return false
 	end
 	return true
@@ -213,6 +220,14 @@ function Net.ServerEvent(name: string, options: ServerEventOptions?): any
 	local remote = (
 		getRemoteInstance(name, if unreliable then "UnreliableRemoteEvent" else "RemoteEvent") :: any
 	) :: EventInstance
+
+	if IS_SERVER then
+		-- Server -> client only: a client firing it is always invalid. Connecting
+		-- also stops Roblox queueing (and warning about) unhandled invocations.
+		remote.OnServerEvent:Connect(function(player: Player)
+			rejectInvalid(player, name)
+		end)
+	end
 
 	local event = { Name = name }
 

@@ -39,10 +39,13 @@ function Validate.Boolean(value: any): boolean
 	return type(value) == "boolean"
 end
 
--- A string no longer than maxLength bytes.
+-- A valid UTF-8 string of at most maxLength bytes. Invalid UTF-8 is rejected
+-- because DataStores refuse it: one such string stored in a profile would make
+-- every save of that profile fail. (The length check runs first so the UTF-8
+-- scan only ever covers strings within the limit.)
 function Validate.String(maxLength: number): Validator
 	return function(value: any): boolean
-		return type(value) == "string" and #value <= maxLength
+		return type(value) == "string" and #value <= maxLength and utf8.len(value) ~= nil
 	end
 end
 

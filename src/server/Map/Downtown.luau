@@ -6,7 +6,8 @@
 	in Interiors.luau.
 
 	Downtown buildings stand back 3 studs inside their footprint so awnings and
-	signs stay within it, over the 8-stud sidewalk.
+	signs stay within it, over a paved forecourt that continues the 8-stud
+	sidewalk up to the facade.
 ]]
 
 local MapLayout = require(script.Parent.MapLayout)
@@ -111,6 +112,8 @@ function Downtown.Storefront(model: Model, element: Element)
 	local height = element.Height
 
 	frame:Span("Body", -half, half, 0, height - 2, front, back, look.Wall)
+	-- Paved strip in front of the set-back facade, flush with the sidewalk.
+	frame:Span("Forecourt", -half, half, 0, SIDEWALK_TOP, -frame.Depth / 2, front, MapPalette.Sidewalk)
 	flatRoof(frame, -half, half, front, back, height, look.Wall, look.Trim)
 	frame:Span("RoofUnit", half - 14, half - 6, height - 2, height - 0.6, back - 12, back - 6, MapPalette.Galvanized)
 

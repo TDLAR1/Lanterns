@@ -77,7 +77,8 @@ You need **Roblox Studio** and a terminal: PowerShell on Windows, Terminal on ma
 ## 3. Testing Milestone 0
 
 Do these checks in order. The Output window should show `[WorldService] Built the blockout
-map in … ms` and `[Server] Initialised services in … ms`, with no red errors.
+map in … ms`, the game name and version from `Config/Game.luau`, and `[Server] Initialised
+services in … ms`, with no red errors.
 
 | # | Do this | You should see |
 |---|---------|----------------|

@@ -8,8 +8,12 @@
 	  * Other services read and change a player's data through GetData(). The
 	    returned table IS the save: modify it in place, never replace it, and only
 	    while it is loaded (GetData returns nil otherwise).
-	  * If the DataStore is unavailable the game keeps working on in-memory data;
-	    IsSavingEnabled() tells whether progress will actually be saved.
+	  * If Roblox reports no DataStore access at all (e.g. Studio without API
+	    access), ProfileStore falls back to in-memory data and the game keeps
+	    working; IsSavingEnabled() tells whether progress will actually be saved.
+	  * If the DataStore is reachable but keeps failing (an outage), a save that
+	    cannot load within Config.Data.SessionStartTimeout gets the player kicked
+	    with LoadFailedKickMessage rather than playing on untracked progress.
 
 	API:
 	  DataService:GetData(player): PlayerData?
@@ -100,10 +104,17 @@ local function isInGame(player: Player): boolean
 end
 
 local function startSession(player: Player): Profile?
-	-- Cancelling stops ProfileStore's (possibly long) retry loop once the player has left.
+	-- Cancelling stops ProfileStore's (possibly long) retry loop once the player has
+	-- left. Passing Cancel also switches off ProfileStore's own start timeout, so
+	-- the deadline lives here: without it a DataStore outage would retry for as
+	-- long as the player stays, and they would never reach the load-failed kick.
+	-- ProfileStore also checks Cancel after a load succeeds and releases a profile
+	-- that arrives too late, so no load can finish after this deadline.
+	-- Cancel runs inside UpdateAsync transforms, so it must never yield.
+	local startedAt = os.clock()
 	local params: SessionParams = {
 		Cancel = function(): boolean
-			return not isInGame(player)
+			return not isInGame(player) or os.clock() - startedAt >= DataConfig.SessionStartTimeout
 		end,
 	}
 	-- pcall: ProfileStore errors (rather than returning nil) on misuse such as a
@@ -162,6 +173,11 @@ local function loadProfile(player: Player)
 	profiles[player] = profile
 	local data: Types.PlayerData = profile.Data
 	DataService.ProfileLoaded:Fire(player, data)
+	-- OnCriticalToggle only announces changes; a player loading in while saving is
+	-- already failing must be told now (the client queues it until it listens).
+	if ProfileStore.IsCriticalState then
+		Remotes.Notify:FireClient(player, DataConfig.SavingTroubleMessage, "Warning")
+	end
 	resumeWaiters(player, data)
 end
 

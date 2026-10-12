@@ -24,6 +24,12 @@ return function(t, ctx)
 		t.expect(not str("hello!") and not str(5), "too long / wrong type")
 	end)
 
+	t.test("String rejects invalid UTF-8", function()
+		local str = Validate.String(10)
+		t.expect(str("héllo"), "multi-byte UTF-8")
+		t.expect(not str("\xff") and not str("ab\xc3"), "invalid UTF-8")
+	end)
+
 	t.test("OneOf only accepts listed strings", function()
 		local oneOf = Validate.OneOf({ "Wall", "Hammer" })
 		t.expect(oneOf("Wall") and oneOf("Hammer"), "listed")

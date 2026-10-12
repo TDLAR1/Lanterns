@@ -14,6 +14,8 @@ local Text = {
 		Returning = "Welcome back to %s! Session %d · %d/%d districts discovered.",
 		-- Shown when the DataStore is unavailable (e.g. Studio without API access).
 		SavingDisabled = "Saving is unavailable this session: you can play, but your progress will not be kept.",
+		-- Shown when the save takes a while to load (Config.Data.ClientLoadingNoticeDelay).
+		Loading = "Loading your save…",
 	},
 
 	-- A district was discovered for the first time. (district name, discovered count, total)
@@ -30,8 +32,11 @@ local Text = {
 		CurrentTag = "You are here",
 		-- The close button names the way to close the panel on each device.
 		Close = {
-			KeyboardMouse = "Close  [M]",
-			Gamepad = "Close  (B)",
+			-- (the key bound to ToggleDistricts in Config.Input, as named on the
+			-- player's keyboard layout)
+			KeyboardMouse = "Close  [%s]",
+			-- The controller's own button glyph (CloseMenu in Config.Input) is shown beside it.
+			Gamepad = "Close",
 			Touch = "Close",
 		},
 	},

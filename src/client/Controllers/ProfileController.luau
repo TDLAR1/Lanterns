@@ -1,11 +1,14 @@
 --!strict
 --[[
-	ProfileController: the player's save summary, asked for once on start.
+	ProfileController: the player's save summary, asked for on start and again
+	until the save has loaded.
 
-	The server answers Remotes.GetProfileSummary once the save has loaded (or
-	with nothing if it could not load in time). On an answer this greets the
-	player (first visit or welcome back with their session number) and, if the
-	DataStore is unavailable this session, warns that progress will not be kept.
+	The server answers Remotes.GetProfileSummary once the save has loaded, which
+	can take up to Config.Data.ClientWaitTimeout (with nothing if it could not
+	load; the server then kicks the player). If the answer is slow the player is
+	told their save is still loading. On an answer this greets the player (first
+	visit or welcome back with their session number) and, if the DataStore is
+	unavailable this session, warns that progress will not be kept.
 
 	The summary is only what the server chose to tell this client; nothing here
 	changes saved data.
@@ -18,6 +21,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
+local DataConfig = require(Shared.Config.Data)
 local GameConfig = require(Shared.Config.Game)
 local Remotes = require(Shared.Remotes)
 local Signal = require(Shared.Util.Signal)
@@ -91,22 +95,46 @@ end
 function ProfileController.Init(_self: ProfileController) end
 
 function ProfileController.Start(_self: ProfileController)
-	-- Yields until the server has loaded the save (or gives up on it).
-	local ok, result = pcall(function(): Types.ProfileSummary?
-		return Remotes.GetProfileSummary:Invoke()
+	-- A save normally loads in a second or two, but ProfileStore needs 45 s or more
+	-- to take over a save still locked by a server that crashed, so say so if the
+	-- answer is slow rather than leaving the player wondering.
+	local answered = false
+	task.delay(DataConfig.ClientLoadingNoticeDelay, function()
+		if not answered then
+			NotificationController:Notify(Text.Welcome.Loading, "Info")
+		end
 	end)
-	if not ok then
-		warn(`[ProfileController] Could not ask for the profile summary: {result}`)
-		return
+
+	-- Ask until the save has loaded. An empty answer means it has not (yet): the
+	-- request was dropped or arrived before the server was ready. If the save
+	-- cannot load at all the server kicks the player, so the loop ends with the
+	-- session. Each request blocks on the server until the save loads, so asking
+	-- at most once per ClientRetryDelay stays well inside RateLimits.GetProfileSummary.
+	local warned = false
+	while true do
+		-- Yields until the server has loaded the save (or gives up on it).
+		local ok, result = pcall(function(): Types.ProfileSummary?
+			return Remotes.GetProfileSummary:Invoke()
+		end)
+		if not ok then
+			answered = true
+			warn(`[ProfileController] Could not ask for the profile summary: {result}`)
+			return
+		end
+		local loaded = readSummary(result)
+		if loaded ~= nil then
+			answered = true
+			summary = loaded
+			ProfileController.SummaryLoaded:Fire(loaded)
+			greet(loaded)
+			return
+		end
+		if not warned then
+			warned = true
+			warn("[ProfileController] The server sent no profile summary yet; asking again")
+		end
+		task.wait(DataConfig.ClientRetryDelay)
 	end
-	local loaded = readSummary(result)
-	if loaded == nil then
-		warn("[ProfileController] The server sent no profile summary; progress info is unavailable this session")
-		return
-	end
-	summary = loaded
-	ProfileController.SummaryLoaded:Fire(loaded)
-	greet(loaded)
 end
 
 export type ProfileController = typeof(ProfileController)

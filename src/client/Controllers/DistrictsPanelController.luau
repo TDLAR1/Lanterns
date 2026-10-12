@@ -26,8 +26,10 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage.Shared
+local InputConfig = require(Shared.Config.Input)
 local Text = require(Shared.Config.Text)
 local Theme = require(Shared.Config.Theme)
 local Types = require(Shared.Types)
@@ -55,6 +57,7 @@ type Panel = {
 	progressLabel: TextLabel,
 	progressFill: Frame,
 	closeButton: TextButton,
+	closeGlyph: ImageLabel,
 	rows: { [string]: Row },
 }
 
@@ -184,8 +187,33 @@ local function buildRow(district: Types.DistrictInfo, layoutOrder: number, paren
 	}
 end
 
+-- The Close button names the real binding rather than a hard-coded key: on a
+-- keyboard the ToggleDistricts key as printed on the player's layout (KeyCodes
+-- are US-layout positions, so KeyCode.M is "," on AZERTY), on a controller the
+-- CloseMenu button's own glyph (B on Xbox, Circle on PlayStation).
 local function closeLabel(device: Types.InputDevice): string
+	if device == "KeyboardMouse" then
+		local key = InputConfig.Actions.ToggleDistricts.Keyboard[1]
+		if key == nil then
+			return strings.Close.Touch
+		end
+		-- Keys that type no character (e.g. Tab) have no layout string; use the key's name.
+		local keyName = UserInputService:GetStringForKeyCode(key)
+		return string.format(strings.Close.KeyboardMouse, if keyName ~= "" then keyName else key.Name)
+	end
 	return strings.Close[device]
+end
+
+local function showCloseHint(current: Panel, device: Types.InputDevice)
+	current.closeButton.Text = closeLabel(device)
+	local button = InputConfig.Actions.CloseMenu.Gamepad[1]
+	if device == "Gamepad" and button ~= nil then
+		-- Asked again on every change: the glyph follows the last controller connected.
+		current.closeGlyph.Image = UserInputService:GetImageForKeyCode(button)
+		current.closeGlyph.Visible = true
+	else
+		current.closeGlyph.Visible = false
+	end
 end
 
 local function buildPanel(parent: ScreenGui, onClose: () -> ()): Panel
@@ -272,7 +300,6 @@ local function buildPanel(parent: ScreenGui, onClose: () -> ()): Panel
 	closeButton.BorderSizePixel = 0
 	-- The engine's own hover/press shading is enough feedback here.
 	closeButton.AutoButtonColor = true
-	closeButton.Text = closeLabel(InputController:GetDevice())
 	closeButton.FontFace = Theme.FontBold
 	closeButton.TextSize = config.CloseTextSize
 	closeButton.TextColor3 = Theme.PanelColor
@@ -281,16 +308,28 @@ local function buildPanel(parent: ScreenGui, onClose: () -> ()): Panel
 	closeButton.Activated:Connect(onClose)
 	closeButton.Parent = frame
 
+	local closeGlyph = Instance.new("ImageLabel")
+	closeGlyph.Name = "Glyph"
+	closeGlyph.BackgroundTransparency = 1
+	closeGlyph.AnchorPoint = Vector2.new(1, 0.5)
+	closeGlyph.Position = UDim2.new(1, -config.CloseGlyphInset, 0.5, 0)
+	closeGlyph.Size = UDim2.fromOffset(config.CloseGlyphSize, config.CloseGlyphSize)
+	closeGlyph.Visible = false
+	closeGlyph.Parent = closeButton
+
 	frame.Parent = parent
 
-	return {
+	local built: Panel = {
 		frame = frame,
 		openScale = openScale,
 		progressLabel = progressLabel,
 		progressFill = progressFill,
 		closeButton = closeButton,
+		closeGlyph = closeGlyph,
 		rows = rows,
 	}
+	showCloseHint(built, InputController:GetDevice())
+	return built
 end
 
 local function refresh()
@@ -381,7 +420,7 @@ function DistrictsPanelController.Init(self: DistrictsPanelController)
 		end
 	end)
 	InputController.DeviceChanged:Connect(function(device: Types.InputDevice)
-		built.closeButton.Text = closeLabel(device)
+		showCloseHint(built, device)
 	end)
 	ZoneController.DistrictChanged:Connect(refresh)
 	ZoneController.DiscoveredChanged:Connect(refresh)

@@ -19,6 +19,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 require(ReplicatedStorage.Shared.Remotes)
+local GameConfig = require(ReplicatedStorage.Shared.Config.Game)
 
 -- Dependency order (each service only uses the ones above it).
 local DataService = require(script.Services.DataService)
@@ -41,4 +42,5 @@ task.spawn(ZoneService.Start, ZoneService)
 task.spawn(SpawnService.Start, SpawnService)
 task.spawn(BoundaryService.Start, BoundaryService)
 
+print(`[Server] {GameConfig.Name} {GameConfig.Version}`)
 print(string.format("[Server] Initialised services in %.0f ms", (os.clock() - startedAt) * 1000))

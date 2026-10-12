@@ -24,7 +24,9 @@ local Theme = {
 
 	-- UI is designed at this viewport height and scaled to the real one.
 	ReferenceHeight = 720,
-	MinScale = 0.75,
+	-- Phones in landscape are always short enough to bottom out here, so this
+	-- keeps 52 px tap targets at 44 px or more and 13 px text at 11 px or more.
+	MinScale = 0.85,
 	MaxScale = 1.35,
 }
 

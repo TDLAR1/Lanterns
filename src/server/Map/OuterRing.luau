@@ -259,7 +259,9 @@ end
 local function driveLength(placement: MapLayout.Placement): number
 	local settings = MapLayout.OuterRing
 	local front = FARMSTEAD_DEPTH / 2
-	local best = 40
+	-- Only the fallback length when no road or track is within range; every listed
+	-- farmstead has one closer than this (the farthest is 41 studs away).
+	local best = 80
 	local function consider(lineAt: number, center: number, sign: number, halfWidth: number)
 		local distance = (lineAt - center) * sign - front - halfWidth
 		if distance >= 0 and distance < best then
@@ -424,7 +426,8 @@ local function buildGrainCoop(folder: Instance): Rect
 	frame:Span("Gallery", -90, 90, siloHeight, siloHeight + 6, -5, 5, concrete)
 	frame:Span("HeadHouse", -128, -102, 0, 150, -16, 18, concrete)
 	frame:Span("HeadHouseTop", -124, -106, 150, 158, -10, 12, MapPalette.ConcreteDark)
-	frame:Span("Bridge", -102, -90, 140, 145, -3, 3, concrete)
+	-- Conveyor bridge from the head house to the end of the gallery, at its height.
+	frame:Span("Bridge", -102, -90, siloHeight + 0.5, siloHeight + 5.5, -3, 3, concrete)
 
 	local railroad = MapLayout.Find("Railroad")
 	local sidingZ = railroad.Z - railroad.SizeZ / 2 - 9 - settings.Z
