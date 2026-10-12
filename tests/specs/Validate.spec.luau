@@ -1,0 +1,48 @@
+return function(t, ctx)
+	local Validate = ctx.require(ctx.shared.Util.Validate)
+	local Vector3 = ctx.roblox.Vector3
+
+	t.test("Number accepts finite numbers only", function()
+		t.expect(Validate.Number(0) and Validate.Number(-12.5), "finite numbers")
+		t.expect(not Validate.Number(0 / 0), "NaN")
+		t.expect(not Validate.Number(math.huge) and not Validate.Number(-math.huge), "infinity")
+		t.expect(not Validate.Number("1") and not Validate.Number(nil), "non-numbers")
+	end)
+
+	t.test("NumberRange and Integer respect bounds", function()
+		local range = Validate.NumberRange(0, 10)
+		t.expect(range(0) and range(10) and range(5.5), "inside")
+		t.expect(not range(-0.01) and not range(10.01), "outside")
+		local int = Validate.Integer(1, 3)
+		t.expect(int(1) and int(3), "integers")
+		t.expect(not int(2.5) and not int(4), "non-integer / out of range")
+	end)
+
+	t.test("String enforces max length", function()
+		local str = Validate.String(5)
+		t.expect(str("hello") and str(""), "short strings")
+		t.expect(not str("hello!") and not str(5), "too long / wrong type")
+	end)
+
+	t.test("OneOf only accepts listed strings", function()
+		local oneOf = Validate.OneOf({ "Wall", "Hammer" })
+		t.expect(oneOf("Wall") and oneOf("Hammer"), "listed")
+		t.expect(not oneOf("Cage") and not oneOf(1), "unlisted")
+	end)
+
+	t.test("Vector3 validators reject NaN and enforce length", function()
+		t.expect(Validate.Vector3(Vector3.new(1, 2, 3)), "plain vector")
+		t.expect(not Validate.Vector3(Vector3.new(0 / 0, 0, 0)), "NaN component")
+		t.expect(not Validate.Vector3({ X = 1, Y = 2, Z = 3 }), "table pretending to be a vector")
+		t.expect(Validate.UnitVector3(Vector3.new(0, 1, 0)), "unit")
+		t.expect(not Validate.UnitVector3(Vector3.new(0, 2, 0)), "not unit")
+		t.expect(Validate.Vector3Max(5)(Vector3.new(3, 4, 0)), "length 5")
+		t.expect(not Validate.Vector3Max(5)(Vector3.new(3, 4, 1)), "longer than 5")
+	end)
+
+	t.test("Optional allows nil", function()
+		local optional = Validate.Optional(Validate.Boolean)
+		t.expect(optional(nil) and optional(true), "nil or boolean")
+		t.expect(not optional("yes"), "wrong type")
+	end)
+end

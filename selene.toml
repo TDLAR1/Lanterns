@@ -1,0 +1,6 @@
+std = "roblox"
+exclude = ["src/server/Vendor/*"]
+
+[lints]
+# Luau type annotations make shadowing intentional in a few places (e.g. narrowed locals).
+shadowing = "allow"
