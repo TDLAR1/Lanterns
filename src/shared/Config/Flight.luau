@@ -43,9 +43,10 @@ local Flight = {
 	-- Holding Descend this close to the ground (studs below the feet) lands.
 	AutoLandDistance = 3.5,
 
-	-- Costs. Flying drains willpower and ring charge every second; boosting
-	-- drains willpower much faster.
-	WillpowerPerSecond = 2,
+	-- Costs. Cruising only wears down ring charge, so willpower keeps
+	-- regenerating and you can explore freely; boosting burns willpower fast.
+	-- (Any willpower drain pauses regeneration, Config.Ring.Willpower.RegenDelay.)
+	WillpowerPerSecond = 0,
 	BoostWillpowerPerSecond = 10,
 	ChargePerSecond = 0.06,
 	-- Willpower needed to take off / to start boosting.
