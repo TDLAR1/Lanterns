@@ -29,6 +29,22 @@ local Tags = {
 	-- Attributes: DistrictId (string).
 	RingBatterySpot = "RingBatterySpot",
 
+	-- A Model with a Humanoid that ring powers may damage (training dummies, and
+	-- the enemies added with missions). Players are never tagged: whether powers
+	-- hurt other players is Config.Combat.PvPEnabled.
+	Damageable = "Damageable",
+
+	-- Where a training dummy stands (an invisible Part; the dummy faces the
+	-- part's LookVector).
+	TrainingDummySpot = "TrainingDummySpot",
+
+	-- Every hard-light construct Model the server creates (wall, hammer, cage).
+	-- Attributes: ConstructId, OwnerUserId.
+	Construct = "Construct",
+
+	-- The ring Part welded to a character's hand; beams start here.
+	PowerRing = "PowerRing",
+
 	-- On every top-level blockout Model; lets tools find what still needs its final model.
 	-- Attributes: BlockoutOf (string; the building/landmark name).
 	Blockout = "Blockout",
@@ -43,6 +59,27 @@ local Attributes = {
 	-- Set by the server on each Player: the district they are currently in
 	-- (a DistrictId string, or nil while they have no character).
 	PlayerDistrict = "District",
+
+	-- Ring state, set by the server on each Player (read-only for clients; the
+	-- HUD and effects read them). Numbers are rounded to 0.1 to limit traffic.
+	Willpower = "Willpower",
+	WillpowerMax = "WillpowerMax",
+	RingCharge = "RingCharge",
+	RingChargeMax = "RingChargeMax",
+	-- True while the server has the player flying / boosting / shielded /
+	-- firing the beam / recharging at the battery.
+	Flying = "Flying",
+	Boosting = "Boosting",
+	Shielding = "Shielding",
+	BeamActive = "BeamActive",
+	Recharging = "Recharging",
+	-- Cooldowns: "CooldownEnd_<PowerId>" holds the server time
+	-- (Workspace:GetServerTimeNow()) when that power is ready again.
+	CooldownPrefix = "CooldownEnd_",
+
+	-- On construct Models.
+	ConstructId = "ConstructId",
+	OwnerUserId = "OwnerUserId",
 }
 
 return {

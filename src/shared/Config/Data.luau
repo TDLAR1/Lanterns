@@ -1,6 +1,7 @@
 --!strict
 -- Save-data settings. Profiles are stored with ProfileStore (session locked).
 
+local RingConfig = require(script.Parent.Ring)
 local Types = require(script.Parent.Parent.Types)
 
 -- Shared by SessionStartTimeout and ClientWaitTimeout below so the two cannot drift apart.
@@ -45,6 +46,10 @@ local Data = {
 	Template = {
 		SchemaVersion = 1,
 		DiscoveredDistricts = {},
+		Ring = {
+			-- A brand-new ring starts full.
+			Charge = RingConfig.Charge.Max,
+		},
 	} :: Types.PlayerData,
 }
 

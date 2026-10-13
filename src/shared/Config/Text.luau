@@ -48,6 +48,38 @@ local Text = {
 		-- At (or past) the hard edge, where the player cannot go further.
 		EdgeHint = "You can't go any further this way",
 	},
+
+	Ring = {
+		-- HUD labels.
+		WillpowerLabel = "WILLPOWER",
+		ChargeLabel = "RING",
+		-- Shown (server Notify) when the ring runs out of charge.
+		Depleted = "Your ring has gone dark. Recharge it at the battery in the Sheriff's Office.",
+		-- Shown once when charge drops to Config.Ring.Charge.LowThreshold.
+		Low = "Ring charge low. Recharge at the battery in the Sheriff's Office.",
+		Recharged = "Ring fully charged.",
+		-- Short feedback when the server refuses a power. (%s = power name, for Cooldown)
+		Rejected = {
+			NotReady = "Your ring isn't ready yet",
+			Cooldown = "%s is recharging",
+			NoWillpower = "Not enough willpower",
+			NoCharge = "Out of ring charge",
+			Busy = "You can't do that right now",
+			NoTarget = "Nothing to trap there",
+			OutOfRange = "Too far away",
+		},
+	},
+
+	-- The oath spoken at the ring battery. Original text written for this game.
+	Oath = {
+		Lines = {
+			"I carry this light into the dark places.",
+			"Where fear speaks, my will answers.",
+			"I will not look away. I will not stand down.",
+			"This light is my promise. Let it hold.",
+		},
+		Interrupted = "The oath was interrupted.",
+	},
 }
 
 return Text

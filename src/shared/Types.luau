@@ -31,6 +31,11 @@ export type PlayerData = {
 	-- Set of discovered district ids (id -> true). A set, not an array, so the
 	-- same district can never be counted twice.
 	DiscoveredDistricts: { [string]: boolean },
+	-- The power ring. Charge is saved so rejoining never refills it: the only way
+	-- to recharge is the ring battery in the Sheriff's Office.
+	Ring: {
+		Charge: number,
+	},
 }
 
 -- What the client is allowed to know about its own saved data on join.
@@ -61,7 +66,42 @@ export type TouchButtonConfig = {
 export type InputActionConfig = {
 	Keyboard: { Enum.KeyCode },
 	Gamepad: { Enum.KeyCode },
+	-- Mouse buttons (Enum.UserInputType.MouseButton1/2/3) that trigger the action.
+	Mouse: { Enum.UserInputType }?,
 	Touch: TouchButtonConfig?,
 }
+
+-- Ring powers --------------------------------------------------------------------
+
+-- Every power the ring has. Ids are used as cooldown attribute suffixes and in
+-- Config.Powers, so never rename one.
+export type PowerId = "Flight" | "Beam" | "Shield" | "Wall" | "Hammer" | "Cage"
+
+-- The hard-light constructs a player can cast (a subset of PowerId).
+export type ConstructId = "Wall" | "Hammer" | "Cage"
+
+-- Why the server refused a power request (sent back to the client for feedback).
+export type PowerRejectReason =
+	"NotReady" -- save data not loaded yet, or no living character
+	| "Cooldown" -- the power is still cooling down
+	| "NoWillpower" -- not enough willpower for this power
+	| "NoCharge" -- the ring is out of charge: recharge at the battery
+	| "Busy" -- doing something that blocks powers (recharging, shielded beam, ...)
+	| "NoTarget" -- nothing to act on (e.g. no one in range to cage)
+	| "OutOfRange" -- the aim point is too far away
+
+-- One-shot visual effects the server asks every client to play (VFXController).
+export type EffectId =
+	"Takeoff"
+	| "BeamImpact"
+	| "ShieldUp"
+	| "ShieldDown"
+	| "WallSpawn"
+	| "WallShatter"
+	| "HammerImpact"
+	| "CageClose"
+	| "CageRelease"
+	| "BatteryFlare"
+	| "RingDepleted"
 
 return nil
