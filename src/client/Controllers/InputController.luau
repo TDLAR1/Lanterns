@@ -26,7 +26,9 @@
 
 	While a panel is open (Config.Input.TouchWhileMenuOpen.MenuAction is bound)
 	only the TouchWhileMenuOpen.Keep actions show their touch buttons, so power
-	buttons never sit on top of the panel and catch taps meant for it.
+	buttons never sit on top of the panel and catch taps meant for it, and a key
+	of the menu action goes to the menu alone (gamepad B closes the panel without
+	also diving while flying).
 
 	The current device comes from UserInputService.PreferredInput, which Roblox
 	updates as the player switches between mouse/keyboard, gamepad and touch.
@@ -39,6 +41,12 @@
 	  InputController:IsHeld(actionName): boolean
 	  InputController:SetTouchLabel(actionName, label)   (relabels a bound action's
 	    touch button until it is unbound; binding again starts from the config label)
+	  InputController:IsMenuOpen(): boolean   (a panel has bound the menu action)
+	  InputController:SetTouchHidden(reason, hidden)   (hides every touch button while
+	    any reason is set, e.g. a cutscene; held buttons are released)
+	  InputController:GetTouchInput(actionName): InputObject?
+	    The touch currently holding the action's button (its Position follows the
+	    finger), e.g. so dragging the Beam button can aim the camera.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -97,6 +105,8 @@ local menuConfig = InputConfig.TouchWhileMenuOpen
 
 local bindings: { [string]: Binding } = {}
 local touchGui: ScreenGui? = nil
+-- Reasons currently hiding every touch button (SetTouchHidden).
+local touchHiddenReasons: { [string]: boolean } = {}
 
 local function readDevice(): Types.InputDevice
 	local preferred = UserInputService.PreferredInput
@@ -198,11 +208,24 @@ local function hasMouseButton(binding: Binding, inputType: Enum.UserInputType): 
 	return buttons ~= nil and table.find(buttons, inputType) ~= nil
 end
 
+-- True if `binding` lists the key of `input` for the device that produced it.
+local function hasKey(binding: Binding, inputType: Enum.UserInputType, keyCode: Enum.KeyCode): boolean
+	local keys = keysFor(binding, inputType)
+	return keys ~= nil and table.find(keys, keyCode) ~= nil
+end
+
 local function onInputBegan(input: InputObject, gameProcessed: boolean)
 	if gameProcessed then
 		return
 	end
 	local inputType = input.UserInputType
+	-- While a panel is open its menu key belongs to the panel alone: the same
+	-- button may mean something else in play (gamepad B also dives in flight).
+	local menuBinding = bindings[menuConfig.MenuAction]
+	if menuBinding ~= nil and hasKey(menuBinding, inputType, input.KeyCode) then
+		press(menuBinding, input.KeyCode)
+		return
+	end
 	if MOUSE_BUTTONS[inputType] then
 		-- On touch a tap also arrives as a mouse click; touch has its own buttons.
 		if device == "Touch" then
@@ -216,8 +239,7 @@ local function onInputBegan(input: InputObject, gameProcessed: boolean)
 		return
 	end
 	forEachBinding(function(binding: Binding)
-		local keys = keysFor(binding, inputType)
-		if keys ~= nil and table.find(keys, input.KeyCode) ~= nil then
+		if hasKey(binding, inputType, input.KeyCode) then
 			press(binding, input.KeyCode)
 		end
 	end)
@@ -256,6 +278,20 @@ local function refreshTouchVisibility()
 			end
 		end
 	end)
+end
+
+-- The touch buttons show only on touch, and only while nothing hides them.
+local function refreshTouchGui()
+	local gui = touchGui
+	if gui == nil then
+		return
+	end
+	local show = device == "Touch" and next(touchHiddenReasons) == nil
+	if not show then
+		-- A hidden button never receives its release.
+		forEachBinding(releaseTouch)
+	end
+	gui.Enabled = show
 end
 
 local function buildTouchButton(
@@ -361,10 +397,31 @@ function InputController.SetTouchLabel(_self: InputController, actionName: strin
 	end
 end
 
+function InputController.IsMenuOpen(_self: InputController): boolean
+	return bindings[menuConfig.MenuAction] ~= nil
+end
+
+-- The touch pressing the action's on-screen button right now, or nil.
+function InputController.GetTouchInput(_self: InputController, actionName: string): InputObject?
+	local binding = bindings[actionName]
+	local touch = if binding ~= nil then binding.touch else nil
+	return if touch ~= nil then touch.input else nil
+end
+
+-- Hides (true) or shows again (false) every touch button for `reason`; they
+-- stay hidden while any reason is set. Nothing changes off touch.
+function InputController.SetTouchHidden(_self: InputController, reason: string, hidden: boolean)
+	if hidden then
+		touchHiddenReasons[reason] = true
+	else
+		touchHiddenReasons[reason] = nil
+	end
+	refreshTouchGui()
+end
+
 function InputController.Init(_self: InputController)
-	local gui = HudController:CreateScreenGui("TouchControls", { DisplayOrder = UIConfig.DisplayOrder.TouchControls })
-	gui.Enabled = device == "Touch"
-	touchGui = gui
+	touchGui = HudController:CreateScreenGui("TouchControls", { DisplayOrder = UIConfig.DisplayOrder.TouchControls })
+	refreshTouchGui()
 
 	UserInputService.InputBegan:Connect(onInputBegan)
 	UserInputService.InputEnded:Connect(onInputEnded)
@@ -376,12 +433,7 @@ function InputController.Init(_self: InputController)
 			return
 		end
 		device = newDevice
-		local showTouch = newDevice == "Touch"
-		if not showTouch then
-			-- A hidden button never receives its release.
-			forEachBinding(releaseTouch)
-		end
-		gui.Enabled = showTouch
+		refreshTouchGui()
 		InputController.DeviceChanged:Fire(newDevice)
 	end)
 end

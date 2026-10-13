@@ -8,7 +8,7 @@ local Game = {
 	-- The town's name, used by in-world signs and the welcome toasts.
 	TownName = "Rushville",
 	-- Shown in the server start-up log next to Name.
-	Version = "0.1.0 · Milestone 0",
+	Version = "0.2.0 · Milestone 1",
 }
 
 return Game

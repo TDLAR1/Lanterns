@@ -22,12 +22,13 @@
 	    (health, duration, damage) is the caster's RingService:GetStrength at the
 	    moment of casting. They are removed when they expire or their owner leaves.
 	      - Wall: stands on the ground under the aim point, facing the caster.
-	        Health / MaxHealth attributes; DamageConstruct wears it down.
+	        Attributes ConstructHealth / ConstructMaxHealth; DamageConstruct
+	        wears it down.
 	      - Hammer: appears raised over the aim point and slams down on it:
 	        area damage and knockback.
 	      - Cage: traps the nearest target near the aim point (it cannot move;
-	        a trapped player cannot use powers). The target Model carries the
-	        attribute PowerService.CagedAttribute while trapped.
+	        a trapped player is landed and cannot use powers). The target Model
+	        carries the attribute Attributes.Caged while trapped.
 
 	State mirrored on each Player for clients: Attributes.BeamActive, Attributes.Shielding.
 
@@ -37,7 +38,7 @@
 	  PowerService:IsFiringBeam(player): boolean
 	  PowerService:DamageConstruct(model, amount)  wears down a wall; it shatters at 0
 	  PowerService.ConstructCast  Signal(player, constructId, model)
-	  PowerService.CagedAttribute                  "Caged"
+	  PowerService.CagedAttribute                  (= Attributes.Caged)
 ]]
 
 local CollectionService = game:GetService("CollectionService")
@@ -57,6 +58,7 @@ local WorldConfig = require(Shared.Config.World)
 
 local Characters = require(script.Parent.Characters)
 local CombatService = require(script.Parent.CombatService)
+local FlightService = require(script.Parent.FlightService)
 local RingService = require(script.Parent.RingService)
 
 local Tags = TagsModule.Tags
@@ -68,10 +70,10 @@ local ConstructConfigs = PowersConfig.Constructs
 
 -- Workspace folder that holds every construct.
 local CONSTRUCT_FOLDER_NAME = "Constructs"
--- Attributes on construct and target Models (in addition to Util/Tags).
-local CAGED_ATTRIBUTE = "Caged"
-local HEALTH_ATTRIBUTE = "Health"
-local MAX_HEALTH_ATTRIBUTE = "MaxHealth"
+-- Attributes on construct and target Models.
+local CAGED_ATTRIBUTE = Attributes.Caged
+local HEALTH_ATTRIBUTE = Attributes.ConstructHealth
+local MAX_HEALTH_ATTRIBUTE = Attributes.ConstructMaxHealth
 -- RingService block reason while a player is trapped in a cage (PvP only).
 local CAGED_BLOCK_REASON = "Caged"
 
@@ -430,7 +432,7 @@ end
 
 -- One tick for every active beam and shield (each in its own thread, so one
 -- player's error never stops the others).
-local function tick()
+local function tickAll()
 	for player, beam in table.clone(beams) do
 		if beams[player] == beam then
 			task.spawn(tickBeam, player, beam)
@@ -454,7 +456,7 @@ local function startTickLoop()
 		-- At most one tick per frame: after a server hitch, carry on rather than
 		-- firing a burst of catch-up ticks.
 		elapsed = math.min(elapsed - interval, interval)
-		tick()
+		tickAll()
 	end)
 end
 
@@ -785,8 +787,12 @@ local function castCage(player: Player, target: Model, strength: number)
 	target:SetAttribute(CAGED_ATTRIBUTE, true)
 	local victim = Players:GetPlayerFromCharacter(target)
 	if victim ~= nil then
-		stopAll(victim)
+		-- Blocked first, so nothing can start again in between. A flyer is landed
+		-- too: the anchored root would otherwise hang in the air still "flying"
+		-- (and paying for it) until the cage opens.
 		RingService:SetBlocked(victim, CAGED_BLOCK_REASON, true)
+		stopAll(victim)
+		FlightService:ForceLand(victim)
 	end
 
 	local connections: { RBXScriptConnection } = {}

@@ -35,6 +35,7 @@ local Assets = {
 		RingDepleted = "",
 		OathChoir = "", -- plays during the oath moment
 		OathComplete = "",
+		BatteryFlare = "", -- the battery flaring when an oath completes (heard by everyone nearby)
 	},
 
 	Animations = {
@@ -47,6 +48,16 @@ local Assets = {
 
 	-- Volume (0..10, Roblox Sound.Volume) for every sound above.
 	SoundVolume = 0.6,
+
+	-- Sounds played at a part or position (3D) are heard at full volume within
+	-- RollOffMinDistance studs and fade out by RollOffMaxDistance.
+	RollOffMinDistance = 10,
+	RollOffMaxDistance = 220,
+	-- A one-shot sound is removed this many seconds after it starts at the
+	-- latest, even if it never reports finishing (e.g. it failed to load).
+	MaxOneShotSeconds = 15,
+	-- Seconds a looped sound takes to fade out when it is stopped.
+	LoopFadeTime = 0.2,
 }
 
 return Assets

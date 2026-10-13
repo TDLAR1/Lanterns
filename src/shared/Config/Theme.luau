@@ -11,9 +11,14 @@ local Theme = {
 	Warning = Color3.fromRGB(255, 196, 64),
 	Success = Color3.fromRGB(64, 255, 128),
 	Info = Color3.fromRGB(150, 210, 255),
+	-- An empty ring (no charge left): the HUD's charge meter turns this dark red.
+	Danger = Color3.fromRGB(235, 82, 70),
+	DangerDim = Color3.fromRGB(70, 18, 16),
 
 	Font = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Regular),
 	FontBold = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold),
+	-- The oath lines at the ring battery: a calm serif.
+	FontOath = Font.new("rbxasset://fonts/families/Merriweather.json", Enum.FontWeight.Regular),
 
 	CornerRadius = UDim.new(0, 10),
 

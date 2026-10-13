@@ -80,6 +80,13 @@ local Attributes = {
 	-- On construct Models.
 	ConstructId = "ConstructId",
 	OwnerUserId = "OwnerUserId",
+	-- On constructs that can be worn down (walls): remaining and starting health.
+	ConstructHealth = "Health",
+	ConstructMaxHealth = "MaxHealth",
+
+	-- True on a target Model (a dummy, or a player's character with PvP on)
+	-- while a hard-light cage holds it.
+	Caged = "Caged",
 }
 
 return {

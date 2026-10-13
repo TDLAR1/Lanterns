@@ -58,16 +58,22 @@ local Flight = {
 	-- Seconds the client waits for the server to confirm a takeoff (or boost) it
 	-- started straight away, before landing again (or ending the boost).
 	ServerAckTimeout = 1.5,
-	-- Shortest time between two Fly presses (the server rate limits SetFlying).
-	ToggleCooldown = 0.3,
+	-- Shortest time between two Fly presses (the server rate limits SetFlying to
+	-- 3 a second, Config.Net, so mashing the button can never trip it).
+	ToggleCooldown = 0.35,
 
 	-- "Fly where you look": the camera's pitch steers climbs and dives, except
 	-- within this many degrees of the horizon, which flies level (the default
 	-- camera always looks a little down at the character).
-	LevelFlightDeadZone = 12,
+	LevelFlightDeadZone = 15,
 	-- Travel speed at which the forward pitch reaches MaxForwardPitch. Below
 	-- cruise speed on purpose: at cruise you are already in the flying pose.
 	FullPitchSpeed = 60,
+	-- Diving (flying where you look, steeply down) tips the body head-first, up
+	-- to this many degrees from upright (180 = straight down). Climbing turns it
+	-- upright. Ascend / Descend alone never tilt the body: you rise and sink
+	-- standing, as when hovering.
+	MaxDivePitch = 150,
 	-- How quickly the body turns toward its direction of travel.
 	TurnResponsiveness = 7,
 	-- Horizontal speeds over which the body goes from facing where the camera

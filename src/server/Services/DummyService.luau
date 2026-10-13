@@ -33,9 +33,9 @@ local Text = require(Shared.Config.Text)
 
 local Characters = require(script.Parent.Characters)
 local CombatService = require(script.Parent.CombatService)
-local PowerService = require(script.Parent.PowerService)
 
 local Tags = TagsModule.Tags
+local Attributes = TagsModule.Attributes
 
 local DummyConfig = CombatConfig.TrainingDummy
 local Look = DummyConfig.Look
@@ -370,7 +370,7 @@ local function onDamaged(attacker: Player, target: Model, amount: number)
 	end
 	local wobble = DummyConfig.Wobble
 	local impulse = wobble.Impulse + amount * wobble.ImpulsePerDamage
-	if target:GetAttribute(PowerService.CagedAttribute) == true then
+	if target:GetAttribute(Attributes.Caged) == true then
 		impulse *= wobble.CagedScale
 	end
 	dummy.leanVelocity += dummy.pushDirection * impulse

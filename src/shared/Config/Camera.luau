@@ -61,6 +61,16 @@ local Camera = {
 		MaxPassThrough = 8,
 	},
 
+	-- Touch: a finger holding one of these actions' buttons turns the camera as
+	-- it drags (a touch that starts on a button never reaches Roblox's camera),
+	-- so you can aim while firing. Sensitivity is radians per pixel dragged
+	-- (horizontal, vertical); MaxPitch (degrees) keeps the view off the poles.
+	TouchAim = {
+		Actions = { "FireBeam" },
+		Sensitivity = Vector2.new(0.008, 0.006),
+		MaxPitch = 80,
+	},
+
 	Shake = {
 		-- Rotation (degrees) and position jitter (studs) at intensity 1.
 		MaxAngle = 2.2,

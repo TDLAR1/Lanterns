@@ -149,6 +149,17 @@ local Powers = {
 
 	-- Cycle order for the "next / previous construct" actions and the HUD.
 	ConstructOrder = { "Wall", "Hammer", "Cage" },
+
+	-- Client feel (PowerController) ---------------------------------------------
+	Client = {
+		-- Seconds combat mode (the over-the-shoulder aim) stays on after a cast.
+		CastCombatTime = 0.5,
+		-- Seconds the client waits for the server to confirm a beam (BeamActive)
+		-- or a shield toggle (Shielding) before giving up on it locally.
+		ConfirmTimeout = 1.5,
+		-- Seconds the ConstructCast / BeamPose animations (Config.Assets) fade.
+		AnimationFadeTime = 0.15,
+	},
 }
 
 return Powers

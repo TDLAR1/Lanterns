@@ -68,6 +68,24 @@ local Text = {
 			NoTarget = "Nothing to trap there",
 			OutOfRange = "Too far away",
 		},
+		-- Names of the powers that have no DisplayName in Config.Powers (used in
+		-- the Cooldown message above and on the HUD's power slots).
+		PowerNames = {
+			Flight = "Flight",
+			Beam = "Beam",
+			Shield = "Shield",
+		},
+		-- The HUD's ring charge value. (%d = percent)
+		ChargeValue = "%d%%",
+		-- Under the charge meter when the ring is empty.
+		RechargeHint = "Recharge at the Sheriff's Office",
+		-- Key hints on the HUD for mouse buttons (keyboard keys use the name of
+		-- the key on the player's own keyboard layout).
+		MouseButtons = {
+			MouseButton1 = "LMB",
+			MouseButton2 = "RMB",
+			MouseButton3 = "MMB",
+		},
 	},
 
 	-- Touch button labels that change while flying (the defaults are the Label
