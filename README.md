@@ -29,6 +29,27 @@ You need **Roblox Studio** and a terminal: PowerShell on Windows, Terminal on ma
      curl -sSf https://raw.githubusercontent.com/rojo-rbx/rokit/main/scripts/install.sh | bash
      ```
    Close and reopen the terminal afterwards.
+
+   **If the installer stops with `curl: (56) ... error: 403`:** the script first asks
+   GitHub's API for the latest version, and GitHub only allows about 60 anonymous API
+   calls per hour per network. Download Rokit directly instead, which makes no API call.
+   On macOS, run `uname -m` first: `arm64` means Apple Silicon, `x86_64` means Intel.
+   ```bash
+   cd ~/Downloads
+   # Apple Silicon (arm64):
+   curl -fL -o rokit.zip https://github.com/rojo-rbx/rokit/releases/download/v1.2.0/rokit-1.2.0-macos-aarch64.zip
+   # Intel (x86_64) instead:
+   # curl -fL -o rokit.zip https://github.com/rojo-rbx/rokit/releases/download/v1.2.0/rokit-1.2.0-macos-x86_64.zip
+   unzip -o rokit.zip
+   ./rokit self-install
+   ```
+   On Windows, download `rokit-1.2.0-windows-x86_64.zip` from the
+   [Rokit releases page](https://github.com/rojo-rbx/rokit/releases), unzip it and run
+   `.\rokit.exe self-install`.
+
+   If `rokit install` (step 2) also fails with 403, give Rokit a GitHub token so it isn't
+   rate limited. Create one at <https://github.com/settings/tokens>; a classic token with
+   no scopes ticked is enough. Then run `rokit authenticate github --token YOUR_TOKEN`.
 2. **Install the project tools.** From the project folder, run:
    ```bash
    rokit install
