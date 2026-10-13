@@ -441,6 +441,76 @@ return function(t, ctx)
 		t.expect(spot:GetAttribute(Attributes.DistrictId) == "Downtown", "DistrictId = Downtown")
 	end)
 
+	t.test("training yard: practice target spots", function()
+		local MapLayout = ctx.require(ctx.server.Map.MapLayout)
+		local railYard = rushville and rushville:FindFirstChild("RailYard")
+		local yard = railYard and railYard:FindFirstChild("Training Yard")
+		t.expect(yard ~= nil and yard:IsA("Model"), "Map/Rushville/RailYard/Training Yard")
+		t.expect(
+			yard:HasTag(Tags.Blockout)
+				and yard:GetAttribute(Attributes.BlockoutOf) == "Training Yard"
+				and yard:GetAttribute(Attributes.DistrictId) == "RailYard",
+			"Training Yard needs the Blockout tag, BlockoutOf and DistrictId attributes"
+		)
+
+		local spots = taggedWith(Tags.TrainingDummySpot)
+		t.expect(#spots >= 4, `at least 4 TrainingDummySpot parts (found {#spots})`)
+
+		-- Keep-out boxes, plus room for a dummy around each (a practice target is ~4 studs wide).
+		local CLEARANCE = 3
+		local welcome, siding = MapLayout.WelcomeSign, MapLayout.Siding
+		local keepOut = {
+			{ name = "the welcome sign", x0 = welcome.X - welcome.Width / 2, x1 = welcome.X + welcome.Width / 2, z0 = welcome.Z - 1, z1 = welcome.Z + 1 },
+			{ name = "the rail siding", x0 = siding.X0, x1 = siding.X1, z0 = siding.Z - 5, z1 = siding.Z + 5 },
+		}
+		local firingLineX = MapLayout.TrainingYard.FiringLineX
+
+		local problems = {}
+		local seen = {}
+		for _, spot in spots do
+			local name = spot:GetFullName()
+			local position = spot.CFrame.Position
+			if not (spot:IsA("BasePart") and spot.Anchored and spot.Transparency >= 1 and not spot.CanCollide and not spot.CanQuery and not spot.CanTouch) then
+				table.insert(problems, `{name} must be an anchored, invisible, non-interactive part`)
+			end
+			if districtAt(position) ~= "RailYard" then
+				table.insert(problems, `{name} is in {districtAt(position)}, expected RailYard`)
+			end
+			if insideBuilding(position) ~= nil then
+				table.insert(problems, `{name} is inside {insideBuilding(position)}`)
+			end
+			if spot.CFrame.LookVector.X >= -0.7 then
+				table.insert(problems, `{name} must face west (LookVector {spot.CFrame.LookVector})`)
+			end
+			for _, box in keepOut do
+				if position.X > box.x0 - CLEARANCE and position.X < box.x1 + CLEARANCE and position.Z > box.z0 - CLEARANCE and position.Z < box.z1 + CLEARANCE then
+					table.insert(problems, `{name} overlaps {box.name}`)
+				end
+			end
+			-- Room to stand: nothing solid where the dummy's body goes.
+			for _, height in { 1.5, 3, 5 } do
+				if insideSolid(position + Vector3.new(0, height, 0)) then
+					table.insert(problems, `{name} has something solid {height} studs up`)
+					break
+				end
+			end
+			-- A clear shot from the firing line to the target at chest height.
+			for x = firingLineX, position.X - 2, 1 do
+				if insideSolid(Vector3.new(x, 3.5, position.Z)) then
+					table.insert(problems, `{name}: the line of fire is blocked at X {x}`)
+					break
+				end
+			end
+			for _, other in seen do
+				if (other - position).Magnitude < 6 then
+					table.insert(problems, `{name} is within 6 studs of another spot`)
+				end
+			end
+			table.insert(seen, position)
+		end
+		t.expect(#problems == 0, table.concat(problems, "\n      "))
+	end)
+
 	t.test("interiors are walk-in; other buildings are solid", function()
 		local problems = {}
 		for _, name in INTERIORS do

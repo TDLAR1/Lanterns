@@ -9,6 +9,10 @@
 	  * Keyboard and gamepad: the keys listed in the action's config. Input the
 	    game already used (typing in chat, the Roblox menu, a focused text box,
 	    gamepad UI navigation) is ignored, so chatting never triggers actions.
+	  * Mouse: the buttons in the action's optional Mouse list. A click the game
+	    already used (on a GUI button, say) is ignored the same way, so clicking
+	    UI never fires the beam; releases always count. Ignored while the player
+	    is on touch, where Roblox also reports taps as mouse clicks.
 	  * Touch: a round on-screen button built from the action's Touch config, in
 	    the "TouchControls" ScreenGui, shown only while the player is on touch.
 	    Buttons react to touch input only: they are hidden whenever the mouse is
@@ -20,6 +24,10 @@
 	powers rely on this). Holds are also released when the window loses focus or
 	the touch buttons hide, because the matching release would never arrive.
 
+	While a panel is open (Config.Input.TouchWhileMenuOpen.MenuAction is bound)
+	only the TouchWhileMenuOpen.Keep actions show their touch buttons, so power
+	buttons never sit on top of the panel and catch taps meant for it.
+
 	The current device comes from UserInputService.PreferredInput, which Roblox
 	updates as the player switches between mouse/keyboard, gamepad and touch.
 
@@ -29,6 +37,8 @@
 	  InputController:BindAction(actionName, handler(phase))   (one handler per action)
 	  InputController:UnbindAction(actionName)
 	  InputController:IsHeld(actionName): boolean
+	  InputController:SetTouchLabel(actionName, label)   (relabels a bound action's
+	    touch button until it is unbound; binding again starts from the config label)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -46,9 +56,10 @@ local HudController = require(script.Parent.HudController)
 
 type ActionHandler = (phase: Types.ActionPhase) -> ()
 
--- Something holding an action down: the KeyCode of a keyboard/gamepad key, or
--- the InputObject of the finger on its touch button (one object per touch).
-type Holder = Enum.KeyCode | InputObject
+-- Something holding an action down: the KeyCode of a keyboard/gamepad key, the
+-- UserInputType of a mouse button, or the InputObject of the finger on its touch
+-- button (one object per touch).
+type Holder = Enum.KeyCode | Enum.UserInputType | InputObject
 
 type TouchButton = {
 	button: TextButton,
@@ -58,6 +69,7 @@ type TouchButton = {
 }
 
 type Binding = {
+	name: string,
 	config: Types.InputActionConfig,
 	handler: ActionHandler,
 	holders: { [Holder]: boolean },
@@ -74,6 +86,14 @@ local GAMEPAD_INPUT_TYPES: { [Enum.UserInputType]: boolean } = {
 	[Enum.UserInputType.Gamepad7] = true,
 	[Enum.UserInputType.Gamepad8] = true,
 }
+
+local MOUSE_BUTTONS: { [Enum.UserInputType]: boolean } = {
+	[Enum.UserInputType.MouseButton1] = true,
+	[Enum.UserInputType.MouseButton2] = true,
+	[Enum.UserInputType.MouseButton3] = true,
+}
+
+local menuConfig = InputConfig.TouchWhileMenuOpen
 
 local bindings: { [string]: Binding } = {}
 local touchGui: ScreenGui? = nil
@@ -173,12 +193,30 @@ local function keysFor(binding: Binding, inputType: Enum.UserInputType): { Enum.
 	return nil
 end
 
+local function hasMouseButton(binding: Binding, inputType: Enum.UserInputType): boolean
+	local buttons = binding.config.Mouse
+	return buttons ~= nil and table.find(buttons, inputType) ~= nil
+end
+
 local function onInputBegan(input: InputObject, gameProcessed: boolean)
 	if gameProcessed then
 		return
 	end
+	local inputType = input.UserInputType
+	if MOUSE_BUTTONS[inputType] then
+		-- On touch a tap also arrives as a mouse click; touch has its own buttons.
+		if device == "Touch" then
+			return
+		end
+		forEachBinding(function(binding: Binding)
+			if hasMouseButton(binding, inputType) then
+				press(binding, inputType)
+			end
+		end)
+		return
+	end
 	forEachBinding(function(binding: Binding)
-		local keys = keysFor(binding, input.UserInputType)
+		local keys = keysFor(binding, inputType)
 		if keys ~= nil and table.find(keys, input.KeyCode) ~= nil then
 			press(binding, input.KeyCode)
 		end
@@ -188,12 +226,34 @@ end
 -- Releases are handled even when the game processed them: a key pressed in
 -- gameplay and released while chat has focus must still end the hold.
 local function onInputEnded(input: InputObject, _gameProcessed: boolean)
+	local inputType = input.UserInputType
 	forEachBinding(function(binding: Binding)
 		local touch = binding.touch
 		if touch ~= nil and touch.input == input then
 			releaseTouch(binding)
-		elseif keysFor(binding, input.UserInputType) ~= nil then
+		elseif MOUSE_BUTTONS[inputType] then
+			release(binding, inputType)
+		elseif keysFor(binding, inputType) ~= nil then
 			release(binding, input.KeyCode)
+		end
+	end)
+end
+
+-- Shows every bound touch button, or only the Keep ones while a panel is open.
+-- A button that hides releases its touch: its release would never arrive.
+local function refreshTouchVisibility()
+	local menuOpen = bindings[menuConfig.MenuAction] ~= nil
+	forEachBinding(function(binding: Binding)
+		local touch = binding.touch
+		if touch == nil then
+			return
+		end
+		local visible = not menuOpen or table.find(menuConfig.Keep, binding.name) ~= nil
+		if touch.button.Visible ~= visible then
+			touch.button.Visible = visible
+			if not visible then
+				releaseTouch(binding)
+			end
 		end
 	end)
 end
@@ -259,11 +319,12 @@ function InputController.BindAction(_self: InputController, actionName: string, 
 	local gui = touchGui
 	assert(gui ~= nil, "InputController:BindAction() called before InputController:Init()")
 
-	local binding: Binding = { config = config, handler = handler, holders = {}, touch = nil }
+	local binding: Binding = { name = actionName, config = config, handler = handler, holders = {}, touch = nil }
 	bindings[actionName] = binding
 	if config.Touch ~= nil then
 		buildTouchButton(binding, actionName, config.Touch, gui)
 	end
+	refreshTouchVisibility()
 end
 
 -- Removes the action's handler and touch button. A held action gets its "End"
@@ -282,11 +343,22 @@ function InputController.UnbindAction(_self: InputController, actionName: string
 		-- Destroying the button also disconnects its event connections.
 		touch.button:Destroy()
 	end
+	refreshTouchVisibility()
 end
 
 function InputController.IsHeld(_self: InputController, actionName: string): boolean
 	local binding = bindings[actionName]
 	return binding ~= nil and isHeld(binding)
+end
+
+-- Changes the text on a bound action's touch button (e.g. "Fly" -> "Land").
+-- Does nothing for an action that is not bound or has no touch button.
+function InputController.SetTouchLabel(_self: InputController, actionName: string, label: string)
+	local binding = bindings[actionName]
+	local touch = if binding ~= nil then binding.touch else nil
+	if touch ~= nil then
+		touch.button.Text = label
+	end
 end
 
 function InputController.Init(_self: InputController)

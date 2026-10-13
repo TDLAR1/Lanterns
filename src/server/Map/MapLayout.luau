@@ -380,6 +380,34 @@ MapLayout.Siding = {
 	Boxcars = { 92, 136 },
 }
 
+-- Practice range on the open grass east of the main spawn (Milestone 1): a
+-- low post-and-rail fence on the north, east and south sides (open toward
+-- the highway), a painted firing line on a dirt strip, a straw-bale backstop
+-- behind the practice targets and a sign facing the highway. Training dummies
+-- stand on the invisible spots, facing west toward the firing line.
+MapLayout.TrainingYard = {
+	Rect = { X0 = 70, X1 = 190, Z0 = 288, Z1 = 346 } :: Rect,
+	FenceHeight = 3.4,
+	PostSpacing = 8,
+	-- The firing line runs north-south at this X, on a dirt strip this wide.
+	FiringLineX = 100,
+	FiringPadWidth = 12,
+	-- Straw bales stacked two high, centred on this X.
+	BackstopX = 177,
+	-- Board facing west (toward the highway), just outside the open side.
+	Sign = { X = 67, Z = 297, Width = 10, Text = "PRACTICE RANGE" },
+	-- Where the practice targets stand, staggered near / far.
+	DummySpots = {
+		{ X = 148, Z = 298 },
+		{ X = 160, Z = 308 },
+		{ X = 148, Z = 318 },
+		{ X = 160, Z = 328 },
+		{ X = 148, Z = 338 },
+	} :: { Point },
+	-- Worn dirt circle under each target.
+	SpotPatchDiameter = 5,
+}
+
 -- Gameplay hooks ---------------------------------------------------------------
 
 -- District zone volumes. The town boxes tile the 1000 x 700 town exactly.

@@ -53,11 +53,72 @@ local Flight = {
 	MinWillpowerToTakeOff = 10,
 	MinWillpowerToBoost = 5,
 
+	-- Client feel (FlightController) -------------------------------------------
+
+	-- Seconds the client waits for the server to confirm a takeoff (or boost) it
+	-- started straight away, before landing again (or ending the boost).
+	ServerAckTimeout = 1.5,
+	-- Shortest time between two Fly presses (the server rate limits SetFlying).
+	ToggleCooldown = 0.3,
+
+	-- "Fly where you look": the camera's pitch steers climbs and dives, except
+	-- within this many degrees of the horizon, which flies level (the default
+	-- camera always looks a little down at the character).
+	LevelFlightDeadZone = 12,
+	-- Travel speed at which the forward pitch reaches MaxForwardPitch. Below
+	-- cruise speed on purpose: at cruise you are already in the flying pose.
+	FullPitchSpeed = 60,
+	-- How quickly the body turns toward its direction of travel.
+	TurnResponsiveness = 7,
+	-- Horizontal speeds over which the body goes from facing where the camera
+	-- looks (hovering, aiming) to facing its direction of travel.
+	FaceTravelMinSpeed = 6,
+	FaceTravelFullSpeed = 22,
+	-- Movers on the root part: force limit per unit of character mass (far above
+	-- gravity, so flight is crisp) and how tightly the body follows its pose.
+	ForcePerMass = 4000,
+	AlignResponsiveness = 50,
+	-- Hitting something bleeds speed off at this rate (so sliding past a wall
+	-- does not fling you away at full speed). Velocity differences below
+	-- CollisionTolerance are not treated as a hit.
+	CollisionResponsiveness = 6,
+	CollisionTolerance = 12,
+
+	-- Near the ground, descending (including a dive) brakes at GroundBrake
+	-- (studs/s²) so it stops GroundSkimHeight studs above standing height: you
+	-- skim along instead of crashing. Holding Descend lands (AutoLandDistance).
+	GroundSkimHeight = 0.5,
+	GroundBrake = 300,
+
+	-- Play-area edge: flight starts curving back once where it will be in
+	-- BoundaryLookAhead seconds is inside the soft band, turning toward the inside
+	-- at up to BoundaryBendSpeed, and never moves outward past it.
+	BoundaryLookAhead = 1.2,
+	BoundaryBendSpeed = 45,
+
+	-- On these devices Boost is a toggle (holding a stick click or a touch button
+	-- while also steering the camera is awkward). A toggled boost also ends after
+	-- IdleStop seconds without movement input.
+	BoostToggle = {
+		Devices = { Gamepad = true, Touch = true } :: { [string]: boolean },
+		IdleStop = 0.6,
+	},
+
+	-- Seconds the fly animations (Config.Assets.Animations.FlyIdle / FlyForward)
+	-- take to fade in and out.
+	AnimationFadeTime = 0.3,
+
 	Camera = {
 		-- Field of view (degrees) normally and at full boost.
 		NormalFov = 70,
 		BoostFov = 88,
 		FovResponsiveness = 4,
+		-- Extra degrees of field of view at full cruise speed (less when slower),
+		-- on top of the boost: speed reads as speed.
+		SpeedFovBonus = 4,
+		-- Camera shake on takeoff and when a boost kicks in.
+		TakeoffShake = { Intensity = 0.35, Duration = 0.35 },
+		BoostShake = { Intensity = 0.25, Duration = 0.3 },
 	},
 
 	-- Server-side speed check (anti-exploit). Positions are sampled every

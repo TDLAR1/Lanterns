@@ -29,6 +29,9 @@ local Powers = {
 		AimSendRate = 15,
 		-- Seconds without an aim update before other clients stop drawing a beam.
 		VisualTimeout = 0.4,
+		-- While the beam keeps hitting a target, the server asks every client to
+		-- play a BeamImpact burst at most this often (seconds) per beam.
+		ImpactEffectInterval = 0.3,
 	},
 
 	-- Toggle a bubble that absorbs most damage. Drains while up.
@@ -63,6 +66,15 @@ local Powers = {
 			-- Scaled by strength.
 			Health = 300,
 			Duration = 10,
+			-- The wall stands on the first surface found up to this many studs below
+			-- the aim point; with nothing there (aiming at the sky) it floats,
+			-- centred on the aim point.
+			GroundSnapDistance = 40,
+			-- Studs the wall's foot sinks into the ground, so slopes show no gap.
+			GroundSink = 0.4,
+			-- A wall aimed closer than this (studs, horizontally) to its caster is
+			-- pushed out to this distance, so it never appears on top of them.
+			MinDistance = 4,
 		},
 
 		-- A giant hammer that slams down on the aim point: area damage and knockback.
@@ -81,6 +93,15 @@ local Powers = {
 			-- Seconds from appearing to impact, and how long the hammer lingers after.
 			SwingTime = 0.35,
 			LingerTime = 0.8,
+			-- Look (studs). The head is HeadSize.X wide, HeadSize.Y tall at impact
+			-- (its lower face strikes the aim point) and HeadSize.Z long along the
+			-- handle. It appears with the handle tilted up RaiseAngle degrees from
+			-- level (90 = straight up), the head high over the near side of the aim
+			-- point, and swings down about the end of the handle.
+			HeadSize = Vector3.new(6, 10, 6),
+			HandleLength = 14,
+			HandleDiameter = 1.3,
+			RaiseAngle = 75,
 		},
 
 		-- A hard-light cage that traps the nearest target within CaptureRadius of
@@ -95,12 +116,36 @@ local Powers = {
 			CaptureRadius = 12,
 			-- Scaled by strength.
 			Duration = 6,
+			-- Look: BarCount vertical bars (BarThickness studs) in a circle around the
+			-- target's bounding box, with Padding studs of room around and above it.
+			BarCount = 10,
+			BarThickness = 0.45,
+			Padding = 1.5,
 		},
 	},
 
 	-- Constructs are drawn in this colour and material on every client.
 	ConstructColor = Theme.RingGreen,
 	ConstructTransparency = 0.25,
+	-- Hard-light look: construct outlines (wall edges, hammer bands, cage rings)
+	-- are this thick (studs) and this transparent, and every construct glows.
+	ConstructEdge = {
+		Thickness = 0.35,
+		Transparency = 0,
+	},
+	ConstructLight = {
+		Range = 16,
+		Brightness = 1.5,
+	},
+
+	-- How far a construct's aim point may be from the caster, on top of the
+	-- construct's Range: RangeTolerance studs, plus the caster's current speed
+	-- times LatencyAllowance seconds (the client aimed from where it was a
+	-- moment ago, which matters at flying speed).
+	Aim = {
+		RangeTolerance = 6,
+		LatencyAllowance = 0.25,
+	},
 
 	-- Cycle order for the "next / previous construct" actions and the HUD.
 	ConstructOrder = { "Wall", "Hammer", "Cage" },

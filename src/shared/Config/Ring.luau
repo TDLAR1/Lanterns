@@ -58,6 +58,34 @@ local Ring = {
 		CancelDistance = 14,
 		-- Willpower is also refilled when the oath completes.
 		RefillsWillpower = true,
+
+		-- Keys that trigger the prompt. Not the gamepad default (ButtonX): that
+		-- button also casts constructs (Config.Input CastConstruct), so pressing it
+		-- at the battery would drop a construct in the back room.
+		PromptKeyboardKeyCode = Enum.KeyCode.E,
+		PromptGamepadKeyCode = Enum.KeyCode.DPadRight,
+		-- The server still accepts a trigger this many studs beyond
+		-- PromptMaxDistance (the client measured it; positions lag a little).
+		TriggerDistanceSlack = 4,
+		-- Seconds between charge steps while the oath fills the ring (the HUD
+		-- meter fills in steps this size). An interrupted oath keeps what it filled.
+		FillInterval = 0.1,
+
+		-- The pose while the oath plays. With Config.Assets.Animations.OathPose set,
+		-- that animation is played; otherwise the ring arm's shoulder joint is turned
+		-- so the arm points at the battery, within these limits.
+		Pose = {
+			-- Seconds to raise the arm, and to lower it again afterwards.
+			RaiseTime = 0.8,
+			LowerTime = 0.45,
+			-- Degrees from hanging straight down (0) to straight up (180).
+			MinPitch = 70,
+			MaxPitch = 160,
+			-- Degrees the arm may swing inward/outward to point at the battery.
+			MaxYaw = 35,
+			-- Seconds the OathPose animation fades in and out (when one is set).
+			AnimationFadeTime = 0.3,
+		},
 	},
 
 	-- The ring part welded to the character's right hand.

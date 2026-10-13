@@ -70,6 +70,15 @@ local Text = {
 		},
 	},
 
+	-- Touch button labels that change while flying (the defaults are the Label
+	-- fields in Config/Input.luau).
+	Flight = {
+		-- The Fly button while flying.
+		LandLabel = "Land",
+		-- The Boost button while a toggled boost is on (pressing it returns to cruise).
+		CruiseLabel = "Cruise",
+	},
+
 	-- The oath spoken at the ring battery. Original text written for this game.
 	Oath = {
 		Lines = {
@@ -79,6 +88,11 @@ local Text = {
 			"This light is my promise. Let it hold.",
 		},
 		Interrupted = "The oath was interrupted.",
+	},
+
+	Combat = {
+		-- Name shown above the training dummies (with their health bar).
+		DummyName = "Practice Target",
 	},
 }
 

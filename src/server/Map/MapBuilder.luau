@@ -33,6 +33,7 @@ local Props = require(script.Parent.Props)
 local Roads = require(script.Parent.Roads)
 local Rural = require(script.Parent.Rural)
 local Shapes = require(script.Parent.Shapes)
+local TrainingYard = require(script.Parent.TrainingYard)
 
 export type BuildOptions = {
 	-- Destroy an existing Map folder and build a fresh one.
@@ -105,6 +106,7 @@ local function buildTown(map: Folder)
 	Props.WelcomeSign(folders.RailYard, welcome.X, welcome.Z, welcome.Width, welcome.Height)
 	local siding = MapLayout.Siding
 	Props.Siding(folders.RailYard, siding.X0, siding.X1, siding.Z, siding.Boxcars)
+	TrainingYard.Build(folders.RailYard)
 
 	local poles = MapLayout.UtilityPoles
 	local northPoles = Props.Extra(folders.Farmstead, "Utility Poles", "Farmstead")
